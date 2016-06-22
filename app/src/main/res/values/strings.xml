@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Note Timer</string>
+    <string name="type_your_task">Type your task...</string>
+    <string name="start_timer">Start timer</string>
+    <string name="show_timer_in_notification">Show timer in notification</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+    <string name="add_task">Add Task</string>
+</resources>
