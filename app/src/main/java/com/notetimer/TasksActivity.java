@@ -69,7 +69,7 @@ public class TasksActivity extends AppCompatActivity{
     }
 
     private void setAdapter() {
-        taskHelper = new TaskHelper();
+        taskHelper = new TaskHelper(this);
         listOfTasks = new ArrayList<>(taskHelper.getTasks(this, AppConstants.ALL_TASKS));
         adapter = new TasksAdapter();
         taskList.setAdapter(adapter);
