@@ -1,18 +1,24 @@
 package com.notetimer;
 
 import android.content.Context;
+import android.support.annotation.UiThread;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * @author shashankm
  */
 public class TaskHelper {
-    private final String today = "Today";
-    private final String yesterday = "Yesterday";
     private String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
             "Oct", "Nov", "Dec"};
+    private TextView timer;
+    private int adapterPosition = -1;
+    private Timer timerTick;
+    private int timeInSecs = -1;
 
     public List<Object> getTasks(Context context, int tasksNeeded) {
         List<Task> allTasks = new ArrayList<>(TaskDBHelper.getInstance()
@@ -22,7 +28,8 @@ public class TaskHelper {
         if (allTasks.size() < 1) {
             return relevantTasks;
         }
-
+        final String yesterday = "Yesterday";
+        final String today = "Today";
         switch (tasksNeeded) {
             case AppConstants.TASKS_TODAY:
                 relevantTasks.add(today);
@@ -85,5 +92,45 @@ public class TaskHelper {
 
     private boolean isTaskCreatedYesterday(String date) {
         return currentDate() - getDate(date) == 1;
+    }
+
+    public void startTimer(TextView timer, int position, int startingTime) {
+        this.timer = timer;
+        this.adapterPosition = position;
+        this.timeInSecs = startingTime;
+        startTime();
+    }
+
+    public void stopTimer() {
+        timerTick.cancel();
+        adapterPosition = -1;
+        timeInSecs = -1;
+        timer = null;
+    }
+
+    public TextView getTimer() {
+        return timer;
+    }
+
+    private void startTime() {
+        timerTick = new Timer();
+        timerTick.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            @UiThread
+            public void run() {
+                timer.setText(convertToReadableFormat());
+            }
+        }, 1000, 1000);
+    }
+
+    private String convertToReadableFormat() {
+        int secs = timeInSecs % 60;
+        int mins = timeInSecs / 60;
+        int hours = mins / 60;
+        return String.format("%02d:%02d:%02d", hours, mins, secs);
+    }
+
+    public int getAdapterPosition() {
+        return adapterPosition;
     }
 }

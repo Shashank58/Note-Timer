@@ -61,4 +61,11 @@ public class TaskDBHelper {
         db.close();
         res.close();
     }
+
+    public void updateTimerStatus(Context context, long id, int isRunning) {
+        SQLiteDatabase db = TaskDB.getInstance(context).getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(TaskDB.TASK_IS_RUNNING, isRunning);
+        db.update(TaskDB.TASK_TABLE, contentValues, TaskDB.TASK_ID + " = " + id, null);
+    }
 }

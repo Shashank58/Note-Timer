@@ -51,4 +51,8 @@ public class Task {
     public String getCreatedAt() {
         return createdAt;
     }
+
+    public void setIsRunning(int isRunning) {
+        this.isRunning = isRunning;
+    }
 }

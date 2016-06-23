@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
@@ -25,6 +26,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -44,11 +46,14 @@ public class TasksActivity extends AppCompatActivity{
     FloatingActionButton addTask;
     @BindView(R.id.task_list)
     RecyclerView taskList;
+    @BindView(R.id.primary_layout)
+    RelativeLayout primaryLayout;
 
     private EditText taskDescription;
     private CheckBox startTimer, showInNotification;
     private TasksAdapter adapter;
     private List<Object> listOfTasks;
+    private TaskHelper taskHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +64,12 @@ public class TasksActivity extends AppCompatActivity{
         taskList.setLayoutManager(new LinearLayoutManager(this));
         taskList.setHasFixedSize(true);
 
+        AppUtils.getInstance().itemClickAnimation(addTask);
         setAdapter();
     }
 
     private void setAdapter() {
-        TaskHelper taskHelper = new TaskHelper();
+        taskHelper = new TaskHelper();
         listOfTasks = new ArrayList<>(taskHelper.getTasks(this, AppConstants.ALL_TASKS));
         adapter = new TasksAdapter();
         taskList.setAdapter(adapter);
@@ -73,10 +79,9 @@ public class TasksActivity extends AppCompatActivity{
     void addTask() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final View dialogView = getLayoutInflater().inflate(R.layout.add_task, null);
-        fetchViews(dialogView);
         builder.setView(dialogView).setCancelable(false);
         final AlertDialog dialog = builder.create();
-
+        fetchViews(dialogView);
         if (VERSION.SDK_INT >= 21) {
             dialog.setOnShowListener(new OnShowListener() {
                 @Override
@@ -205,10 +210,54 @@ public class TasksActivity extends AppCompatActivity{
                 TitleHolder titleHolder = (TitleHolder) holder;
                 titleHolder.day.setText((String)listOfTasks.get(holder.getAdapterPosition()));
             } else {
-                TasksHolder tasksHolder = (TasksHolder) holder;
-                Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
+                final TasksHolder tasksHolder = (TasksHolder) holder;
+                final Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
                 tasksHolder.task.setText(task.getDescription());
+                expandCard(tasksHolder, task, holder.getAdapterPosition());
             }
+        }
+
+        private void expandCard(final TasksHolder tasksHolder, final Task task, final int position) {
+            tasksHolder.cardLayout.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (tasksHolder.actionsLayout.getVisibility() == View.GONE) {
+                        if (task.getIsRunning() == 1) {
+                            tasksHolder.actions.get(1).setVisibility(View.GONE);
+                        } else {
+                            tasksHolder.actions.get(1).setVisibility(View.VISIBLE);
+                            playListener(tasksHolder.actions.get(1), tasksHolder.time,
+                                    tasksHolder.getAdapterPosition());
+                        }
+                        tasksHolder.actionsLayout.setVisibility(View.VISIBLE);
+                    } else {
+                        tasksHolder.actionsLayout.setVisibility(View.GONE);
+                    }
+                }
+            });
+        }
+
+        private void playListener(final ImageView play, final TextView time, final int position) {
+            play.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (taskHelper.getTimer() == null) {
+                        timerStart(time, position, play);
+                    } else {
+                        AppUtils.getInstance().showSnackBar(primaryLayout,
+                                getString(R.string.stop_running_timer));
+                    }
+                }
+            });
+        }
+
+        private void timerStart(TextView time, int position, ImageView play) {
+            taskHelper.startTimer(time, position, 0);
+            play.setVisibility(View.GONE);
+            Task task = (Task) listOfTasks.get(position);
+            task.setIsRunning(1);
+            TaskDBHelper.getInstance().updateTimerStatus(TasksActivity.this,
+                    task.getId(), task.getIsRunning());
         }
 
         @Override
@@ -222,6 +271,7 @@ public class TasksActivity extends AppCompatActivity{
             protected @BindView(R.id.actions_layout) LinearLayout actionsLayout;
             protected @BindView(R.id.task) TextView task;
             protected @BindView(R.id.time) TextView time;
+            protected @BindView(R.id.card_layout) CardView cardLayout;
 
             public TasksHolder(View itemView) {
                 super(itemView);
