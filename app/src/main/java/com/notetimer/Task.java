@@ -4,11 +4,11 @@ package com.notetimer;
  * @author shashankm
  */
 public class Task {
-    private String description, elapsedTime, pauseTime, createdAt;
-    private int isRunning;
+    private String description, pauseTime, createdAt;
+    private int isRunning, elapsedTime;
     private long id;
 
-    public Task(String description, int isRunning, String elapsedTime, String pauseTime, String createdAt) {
+    public Task(String description, int isRunning, int elapsedTime, String pauseTime, String createdAt) {
         this.description = description;
         this.isRunning = isRunning;
         this.elapsedTime = elapsedTime;
@@ -16,11 +16,11 @@ public class Task {
         this.createdAt = createdAt;
     }
 
-    public String getElapsedTime() {
+    public int getElapsedTime() {
         return elapsedTime;
     }
 
-    public void setElapsedTime(String elapsedTime) {
+    public void setElapsedTime(int elapsedTime) {
         this.elapsedTime = elapsedTime;
     }
 

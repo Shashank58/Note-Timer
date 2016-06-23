@@ -19,7 +19,7 @@ public class TaskDB extends SQLiteOpenHelper {
     public static final String TASK_CREATED_AT = "created_at";
     private static final String CREATE_TABLE = "CREATE TABLE " + TASK_TABLE + "(" +
             TASK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TASK_DESCRIPTION + " TEXT, "
-            + TASK_ELAPSED_TIME + " TEXT, " + TASK_PAUSED_TIME + " TEXT, " + TASK_IS_RUNNING
+            + TASK_ELAPSED_TIME + " INTEGER, " + TASK_PAUSED_TIME + " TEXT, " + TASK_IS_RUNNING
             + " INTEGER, " + TASK_CREATED_AT + " TEXT)";
     private static TaskDB instance;
 

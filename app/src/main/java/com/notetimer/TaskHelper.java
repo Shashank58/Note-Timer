@@ -5,7 +5,9 @@ import android.content.Context;
 import android.os.Handler;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -111,7 +113,16 @@ public class TaskHelper {
         timerTick.removeCallbacks(run);
         adapterPosition = -1;
         timeInSecs = -1;
-        timer = null;
+    }
+
+    public String storeCurrentTime() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return df.format(c.getTime());
+    }
+
+    public int getTimeInSecs() {
+        return timeInSecs;
     }
 
     public TextView getTimer() {

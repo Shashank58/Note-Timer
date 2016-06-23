@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -42,18 +43,16 @@ import butterknife.OnClick;
  */
 public class TasksActivity extends AppCompatActivity{
     private static final String TAG = "Tasks Activity";
-    @BindView(R.id.add_task)
-    FloatingActionButton addTask;
-    @BindView(R.id.task_list)
-    RecyclerView taskList;
-    @BindView(R.id.primary_layout)
-    RelativeLayout primaryLayout;
+    @BindView(R.id.add_task) FloatingActionButton addTask;
+    @BindView(R.id.task_list) RecyclerView taskList;
+    @BindView(R.id.primary_layout) RelativeLayout primaryLayout;
 
     private EditText taskDescription;
     private CheckBox startTimer, showInNotification;
     private TasksAdapter adapter;
     private List<Object> listOfTasks;
     private TaskHelper taskHelper;
+    private SharedPrefHandler sharedPrefHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +65,7 @@ public class TasksActivity extends AppCompatActivity{
 
         AppUtils.getInstance().itemClickAnimation(addTask);
         setAdapter();
+        sharedPrefHandler = new SharedPrefHandler();
     }
 
     private void setAdapter() {
@@ -73,6 +73,10 @@ public class TasksActivity extends AppCompatActivity{
         listOfTasks = new ArrayList<>(taskHelper.getTasks(this, AppConstants.ALL_TASKS));
         adapter = new TasksAdapter();
         taskList.setAdapter(adapter);
+    }
+
+    @OnClick(R.id.menu) void openMenu() {
+        startActivity(new Intent(this, MenuActivity.class));
     }
 
     @OnClick(R.id.add_task)
@@ -125,7 +129,7 @@ public class TasksActivity extends AppCompatActivity{
             return;
         }
         int isRunning = startTimer.isChecked()? 1 : 0;
-        Task task = new Task(description, isRunning, "", "", AppUtils.getInstance().getCurrentDate());
+        Task task = new Task(description, isRunning, 0, "", AppUtils.getInstance().getCurrentDate());
         long id = TaskDBHelper.getInstance().insertTask(this, task);
         taskDescription = null;
         task.setId(id);
@@ -183,6 +187,26 @@ public class TasksActivity extends AppCompatActivity{
         revealAnimator.start();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (taskHelper.getAdapterPosition() != -1) {
+            sharedPrefHandler.saveTimeAndPosition(this, taskHelper.getAdapterPosition(),
+                    taskHelper.storeCurrentTime());
+            TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
+                    ((Task) listOfTasks.get(taskHelper.getAdapterPosition())).getId());
+            taskHelper.stopTimer();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
     class TasksAdapter extends RecyclerView.Adapter<ViewHolder> {
 
         @Override
@@ -211,9 +235,16 @@ public class TasksActivity extends AppCompatActivity{
                 titleHolder.day.setText((String)listOfTasks.get(holder.getAdapterPosition()));
             } else {
                 final TasksHolder tasksHolder = (TasksHolder) holder;
-                final Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
+                Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
                 tasksHolder.task.setText(task.getDescription());
                 expandCard(tasksHolder, task, holder.getAdapterPosition());
+                if (task.getIsRunning() == 1) {
+                    taskHelper.startTimer(tasksHolder.time, holder.getAdapterPosition(),
+                            task.getElapsedTime());
+                } else {
+                    tasksHolder.time.setText(task.getElapsedTime() == 0? "":
+                            String.valueOf(task.getElapsedTime()));
+                }
             }
         }
 
@@ -241,7 +272,7 @@ public class TasksActivity extends AppCompatActivity{
             play.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (taskHelper.getTimer() == null) {
+                    if (taskHelper.getAdapterPosition() == -1) {
                         timerStart(time, position, play);
                     } else {
                         AppUtils.getInstance().showSnackBar(primaryLayout,

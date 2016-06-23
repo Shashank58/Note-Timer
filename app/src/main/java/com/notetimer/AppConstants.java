@@ -9,4 +9,6 @@ public class AppConstants {
     public static final int TASKS_TODAY = 2;
     public static final int TASKS_YESTERDAY = 3;
     public static final int ALL_TASKS = 5;
+    public static final String STOPPED_TIME = "Stopped time";
+    public static final String ADAPTER_POSITION = "Adapter position";
 }

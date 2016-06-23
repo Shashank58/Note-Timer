@@ -48,7 +48,7 @@ public class TaskDBHelper {
         while (res.moveToNext()) {
             Log.d(TAG, "getAllTasks: First - " + res.getString(0));
             Log.d(TAG, "getAllTasks: Last - " + res.getString(5));
-            Task task = new Task(res.getString(1), res.getInt(4), res.getString(2),
+            Task task = new Task(res.getString(1), res.getInt(4), res.getInt(2),
                     res.getString(3), res.getString(5));
             task.setId(res.getInt(0));
             tasks.add(task);
@@ -66,6 +66,13 @@ public class TaskDBHelper {
         SQLiteDatabase db = TaskDB.getInstance(context).getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(TaskDB.TASK_IS_RUNNING, isRunning);
+        db.update(TaskDB.TASK_TABLE, contentValues, TaskDB.TASK_ID + " = " + id, null);
+    }
+
+    public void updateTime(Context context, int time, long id) {
+        SQLiteDatabase db = TaskDB.getInstance(context).getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(TaskDB.TASK_ELAPSED_TIME, time);
         db.update(TaskDB.TASK_TABLE, contentValues, TaskDB.TASK_ID + " = " + id, null);
     }
 }
