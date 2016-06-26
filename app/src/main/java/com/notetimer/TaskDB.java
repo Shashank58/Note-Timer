@@ -14,12 +14,12 @@ public class TaskDB extends SQLiteOpenHelper {
     public static final String TASK_DESCRIPTION = "description";
     public static final String TASK_ID = "id";
     public static final String TASK_ELAPSED_TIME = "elapsed_time";
-    public static final String TASK_PAUSED_TIME = "paused_time";
+    public static final String TASK_IS_STOPPED = "is_stopped";
     public static final String TASK_IS_RUNNING = "is_running";
     public static final String TASK_CREATED_AT = "created_at";
     private static final String CREATE_TABLE = "CREATE TABLE " + TASK_TABLE + "(" +
             TASK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TASK_DESCRIPTION + " TEXT, "
-            + TASK_ELAPSED_TIME + " INTEGER, " + TASK_PAUSED_TIME + " TEXT, " + TASK_IS_RUNNING
+            + TASK_ELAPSED_TIME + " INTEGER, " + TASK_IS_STOPPED + " INTEGER, " + TASK_IS_RUNNING
             + " INTEGER, " + TASK_CREATED_AT + " TEXT)";
     private static TaskDB instance;
 

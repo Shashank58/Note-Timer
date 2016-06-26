@@ -41,11 +41,17 @@ import butterknife.OnClick;
 /**
  * @author shashankm
  */
-public class TasksActivity extends AppCompatActivity{
+
+//Todo Hide start timer when another task is already  running.
+//Todo
+public class TasksActivity extends AppCompatActivity {
     private static final String TAG = "Tasks Activity";
-    @BindView(R.id.add_task) FloatingActionButton addTask;
-    @BindView(R.id.task_list) RecyclerView taskList;
-    @BindView(R.id.primary_layout) RelativeLayout primaryLayout;
+    @BindView(R.id.add_task)
+    FloatingActionButton addTask;
+    @BindView(R.id.task_list)
+    RecyclerView taskList;
+    @BindView(R.id.primary_layout)
+    RelativeLayout primaryLayout;
 
     private EditText taskDescription;
     private CheckBox startTimer, showInNotification;
@@ -53,6 +59,8 @@ public class TasksActivity extends AppCompatActivity{
     private List<Object> listOfTasks;
     private TaskHelper taskHelper;
     private SharedPrefHandler sharedPrefHandler;
+    private int adapterPosition;
+    private String stoppedTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +73,14 @@ public class TasksActivity extends AppCompatActivity{
 
         AppUtils.getInstance().itemClickAnimation(addTask);
         setAdapter();
+        fetchDataFromSharedPref();
+    }
+
+    private void fetchDataFromSharedPref() {
         sharedPrefHandler = new SharedPrefHandler();
+        adapterPosition = sharedPrefHandler.getAdapterPosition(this);
+        stoppedTime = sharedPrefHandler.getStoppedTime(this);
+        Log.d(TAG, "fetchDataFromSharedPref: Stopped time - " + stoppedTime);
     }
 
     private void setAdapter() {
@@ -75,7 +90,8 @@ public class TasksActivity extends AppCompatActivity{
         taskList.setAdapter(adapter);
     }
 
-    @OnClick(R.id.menu) void openMenu() {
+    @OnClick(R.id.menu)
+    void openMenu() {
         startActivity(new Intent(this, MenuActivity.class));
     }
 
@@ -114,8 +130,8 @@ public class TasksActivity extends AppCompatActivity{
         dialogView.findViewById(resId).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (resId == R.id.done) {
-                   storeTask();
+                if (resId == R.id.done && !taskDescription.getText().toString().trim().isEmpty()) {
+                    storeTask();
                 }
                 revealShow(dialogView, false, dialog);
             }
@@ -128,8 +144,8 @@ public class TasksActivity extends AppCompatActivity{
         if (description.isEmpty()) {
             return;
         }
-        int isRunning = startTimer.isChecked()? 1 : 0;
-        Task task = new Task(description, isRunning, 0, "", AppUtils.getInstance().getCurrentDate());
+        int isRunning = startTimer.isChecked() ? 1 : 0;
+        Task task = new Task(description, isRunning, 0, 0, AppUtils.getInstance().getCurrentDate());
         long id = TaskDBHelper.getInstance().insertTask(this, task);
         taskDescription = null;
         task.setId(id);
@@ -169,7 +185,6 @@ public class TasksActivity extends AppCompatActivity{
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 dialog.dismiss();
-                view.setVisibility(View.INVISIBLE);
                 addTask.setVisibility(View.VISIBLE);
             }
         });
@@ -185,14 +200,16 @@ public class TasksActivity extends AppCompatActivity{
 
         view.setVisibility(View.VISIBLE);
         revealAnimator.start();
+        AppUtils.getInstance().showKeyBoard(this, taskDescription);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         if (taskHelper.getAdapterPosition() != -1) {
+            Log.d(TAG, "onStop: Saving stuff");
             sharedPrefHandler.saveTimeAndPosition(this, taskHelper.getAdapterPosition(),
-                    taskHelper.storeCurrentTime());
+                    taskHelper.getCurrentDateTime());
             TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
                     ((Task) listOfTasks.get(taskHelper.getAdapterPosition())).getId());
             taskHelper.stopTimer();
@@ -224,7 +241,7 @@ public class TasksActivity extends AppCompatActivity{
 
         @Override
         public int getItemViewType(int position) {
-            return listOfTasks.get(position) instanceof String? AppConstants.TYPE_TITLE
+            return listOfTasks.get(position) instanceof String ? AppConstants.TYPE_TITLE
                     : AppConstants.TYPE_TASK;
         }
 
@@ -232,19 +249,37 @@ public class TasksActivity extends AppCompatActivity{
         public void onBindViewHolder(ViewHolder holder, int position) {
             if (holder.getItemViewType() == AppConstants.TYPE_TITLE) {
                 TitleHolder titleHolder = (TitleHolder) holder;
-                titleHolder.day.setText((String)listOfTasks.get(holder.getAdapterPosition()));
+                titleHolder.day.setText((String) listOfTasks.get(holder.getAdapterPosition()));
             } else {
+                Log.d(TAG, "onBindViewHolder: ");
                 final TasksHolder tasksHolder = (TasksHolder) holder;
                 Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
+                if (adapterPosition == holder.getAdapterPosition()) {
+                    Log.d(TAG, "onBindViewHolder: Should not come here!");
+                    task.setElapsedTime(taskHelper.calculateTimeDifference(stoppedTime, task.getElapsedTime()));
+                    sharedPrefHandler.deleteAllData(TasksActivity.this);
+                }
                 tasksHolder.task.setText(task.getDescription());
                 expandCard(tasksHolder, task, holder.getAdapterPosition());
-                if (task.getIsRunning() == 1) {
-                    taskHelper.startTimer(tasksHolder.time, holder.getAdapterPosition(),
-                            task.getElapsedTime());
+                setTime(tasksHolder, task);
+            }
+        }
+
+        private void setTime(TasksHolder tasksHolder, Task task) {
+            Log.d(TAG, "setTime: Is running - " + task.getIsRunning());
+            if (task.getIsRunning() == 1 && task.getIsStopped() == 0) {
+                Log.d(TAG, "setTime: Elapsed time well - " + task.getElapsedTime());
+                if (task.getElapsedTime() == -1) {
+                    tasksHolder.time.setText(getString(R.string.not_supported));
                 } else {
-                    tasksHolder.time.setText(task.getElapsedTime() == 0? "":
-                            String.valueOf(task.getElapsedTime()));
+                    Log.d(TAG, "setTime: Coming here - " + tasksHolder.getAdapterPosition());
+                    taskHelper.startTimer(tasksHolder.time, tasksHolder.getAdapterPosition(),
+                            task.getElapsedTime());
                 }
+            } else {
+                Log.d(TAG, "setTime: Elapsed time - " + task.getElapsedTime());
+                tasksHolder.time.setText(task.getElapsedTime() == 0 ? "" :
+                        taskHelper.convertToReadableFormat(task.getElapsedTime()));
             }
         }
 
@@ -252,18 +287,46 @@ public class TasksActivity extends AppCompatActivity{
             tasksHolder.cardLayout.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (tasksHolder.actionsLayout.getVisibility() == View.GONE) {
-                        if (task.getIsRunning() == 1) {
-                            tasksHolder.actions.get(1).setVisibility(View.GONE);
+                    if (task.getIsStopped() == 0) {
+                        if (tasksHolder.actionsLayout.getVisibility() == View.GONE) {
+                            showActions(task, tasksHolder);
                         } else {
-                            tasksHolder.actions.get(1).setVisibility(View.VISIBLE);
-                            playListener(tasksHolder.actions.get(1), tasksHolder.time,
-                                    tasksHolder.getAdapterPosition());
+                            tasksHolder.actionsLayout.setVisibility(View.GONE);
                         }
-                        tasksHolder.actionsLayout.setVisibility(View.VISIBLE);
                     } else {
-                        tasksHolder.actionsLayout.setVisibility(View.GONE);
+                        AppUtils.getInstance().showSnackBar(primaryLayout,
+                                getString(R.string.task_finished));
                     }
+                }
+            });
+        }
+
+        private void showActions(Task task, TasksHolder tasksHolder) {
+            if (task.getIsRunning() == 1) {
+                tasksHolder.actions.get(1).setVisibility(View.GONE);
+            } else {
+                tasksHolder.actions.get(1).setVisibility(View.VISIBLE);
+                playListener(tasksHolder.actions.get(1), tasksHolder.time,
+                        tasksHolder.getAdapterPosition());
+            }
+            doneListener(tasksHolder.actions.get(0), task, tasksHolder);
+            tasksHolder.actionsLayout.setVisibility(View.VISIBLE);
+        }
+
+        private void doneListener(ImageView done, final Task task, final TasksHolder tasksHolder) {
+            done.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TaskDBHelper.getInstance().stopTimerForTask(TasksActivity.this,
+                            1, taskHelper.getTimeInSecs(), task.getId());
+                    Log.d(TAG, "onClick: Coming here");
+                    task.setIsStopped(1);
+                    task.setIsRunning(0);
+                    task.setElapsedTime(taskHelper.getTimeInSecs());
+                    taskHelper.stopTimer();
+                    sharedPrefHandler.deleteAllData(TasksActivity.this);
+                    tasksHolder.actionsLayout.setVisibility(View.GONE);
+                    adapter.notifyDataSetChanged();
                 }
             });
         }
@@ -297,12 +360,21 @@ public class TasksActivity extends AppCompatActivity{
         }
 
         class TasksHolder extends RecyclerView.ViewHolder {
-            protected @BindViews({R.id.done, R.id.play, R.id.edit, R.id.notification})
+            protected
+            @BindViews({R.id.done, R.id.play, R.id.edit, R.id.notification})
             List<ImageView> actions;
-            protected @BindView(R.id.actions_layout) LinearLayout actionsLayout;
-            protected @BindView(R.id.task) TextView task;
-            protected @BindView(R.id.time) TextView time;
-            protected @BindView(R.id.card_layout) CardView cardLayout;
+            protected
+            @BindView(R.id.actions_layout)
+            LinearLayout actionsLayout;
+            protected
+            @BindView(R.id.task)
+            TextView task;
+            protected
+            @BindView(R.id.time)
+            TextView time;
+            protected
+            @BindView(R.id.card_layout)
+            CardView cardLayout;
 
             public TasksHolder(View itemView) {
                 super(itemView);
@@ -311,7 +383,9 @@ public class TasksActivity extends AppCompatActivity{
         }
 
         class TitleHolder extends RecyclerView.ViewHolder {
-            protected @BindView(R.id.day) TextView day;
+            protected
+            @BindView(R.id.day)
+            TextView day;
 
             public TitleHolder(View itemView) {
                 super(itemView);

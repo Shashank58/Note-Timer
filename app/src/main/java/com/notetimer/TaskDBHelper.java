@@ -29,7 +29,7 @@ public class TaskDBHelper {
         contentValues.put(TaskDB.TASK_DESCRIPTION, task.getDescription());
         contentValues.put(TaskDB.TASK_IS_RUNNING, task.getIsRunning());
         contentValues.put(TaskDB.TASK_ELAPSED_TIME, task.getElapsedTime());
-        contentValues.put(TaskDB.TASK_PAUSED_TIME, task.getPauseTime());
+        contentValues.put(TaskDB.TASK_IS_STOPPED, task.getIsStopped());
         contentValues.put(TaskDB.TASK_CREATED_AT, task.getCreatedAt());
         long id = db.insert(TaskDB.TASK_TABLE, null, contentValues);
         db.close();
@@ -49,7 +49,7 @@ public class TaskDBHelper {
             Log.d(TAG, "getAllTasks: First - " + res.getString(0));
             Log.d(TAG, "getAllTasks: Last - " + res.getString(5));
             Task task = new Task(res.getString(1), res.getInt(4), res.getInt(2),
-                    res.getString(3), res.getString(5));
+                    res.getInt(3), res.getString(5));
             task.setId(res.getInt(0));
             tasks.add(task);
         }
@@ -63,16 +63,23 @@ public class TaskDBHelper {
     }
 
     public void updateTimerStatus(Context context, long id, int isRunning) {
-        SQLiteDatabase db = TaskDB.getInstance(context).getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(TaskDB.TASK_IS_RUNNING, isRunning);
-        db.update(TaskDB.TASK_TABLE, contentValues, TaskDB.TASK_ID + " = " + id, null);
+        updateDB(context, isRunning, id, TaskDB.TASK_IS_RUNNING);
     }
 
     public void updateTime(Context context, int time, long id) {
+        updateDB(context, time, id, TaskDB.TASK_ELAPSED_TIME);
+    }
+
+    public void stopTimerForTask(Context context, int isStopped, int time, long id) {
+        updateDB(context, isStopped, id, TaskDB.TASK_IS_STOPPED);
+        updateDB(context, 0, id, TaskDB.TASK_IS_RUNNING);
+        updateDB(context, time, id, TaskDB.TASK_ELAPSED_TIME);
+    }
+
+    private void updateDB(Context context, int param, long id, String key) {
         SQLiteDatabase db = TaskDB.getInstance(context).getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(TaskDB.TASK_ELAPSED_TIME, time);
+        contentValues.put(key, param);
         db.update(TaskDB.TASK_TABLE, contentValues, TaskDB.TASK_ID + " = " + id, null);
     }
 }

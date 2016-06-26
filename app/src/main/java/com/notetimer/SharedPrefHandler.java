@@ -33,4 +33,10 @@ public class SharedPrefHandler {
 
         return pref.getInt(AppConstants.ADAPTER_POSITION, -1);
     }
+
+    public void deleteAllData(Context context) {
+        SharedPreferences pref = context.getSharedPreferences(SHARED_PREF,
+                PRIVATE_MODE_PREFERENCE);
+        pref.edit().clear().apply();
+    }
 }

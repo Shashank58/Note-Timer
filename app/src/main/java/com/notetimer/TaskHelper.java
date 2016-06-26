@@ -3,6 +3,7 @@ package com.notetimer;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -115,7 +116,7 @@ public class TaskHelper {
         timeInSecs = -1;
     }
 
-    public String storeCurrentTime() {
+    public String getCurrentDateTime() {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         return df.format(c.getTime());
@@ -148,7 +149,89 @@ public class TaskHelper {
         return String.format("%02d:%02d:%02d", hours, mins, secs);
     }
 
+    public String convertToReadableFormat(int timeInSecs) {
+        int secs = timeInSecs % 60;
+        int mins = timeInSecs / 60;
+        int hours = mins / 60;
+        Log.d(TAG, "convertToReadableFormat: Hours - " + hours + " mins - " +
+                mins + " secs - " + secs);
+        return String.format("%02d:%02d:%02d", hours, mins, secs);
+    }
+
     public int getAdapterPosition() {
         return adapterPosition;
+    }
+
+    public int calculateTimeDifference(String stoppedTime, int elapsedTime) {
+        int timeInSecs = elapsedTime;
+        String[] stopDateTime = stoppedTime.split(" ");
+        String[] currentDateTime = getCurrentDateTime().split(" ");
+        String[] stopDate = stopDateTime[0].split("/");
+        String[] currentDate = currentDateTime[0].split("/");
+        String[] stopTime = stopDateTime[1].split(":");
+        String[] currentTime = currentDateTime[1].split(":");
+
+        int stoppedMonth = Integer.parseInt(stopDate[1]);
+        int currentMonth = Integer.parseInt(currentDate[1]);
+        int stoppedYear = Integer.parseInt(stopDate[2]);
+        int currentYear = Integer.parseInt(currentDate[2]);
+        int stoppedDay = Integer.parseInt(stopDate[0]);
+        int currentDay = Integer.parseInt(currentDate[0]);
+
+        int yearDiff = currentYear - stoppedYear;
+        int monthDiff = currentMonth - stoppedMonth;
+        int dayDiff = currentDay - stoppedDay;
+
+        if (monthDiff < 0) {
+            yearDiff--;
+            monthDiff = (12 - stoppedMonth) + currentMonth;
+        }
+
+        if (dayDiff < 0) {
+            monthDiff--;
+            dayDiff = (getDaysInMonth(stoppedMonth, stoppedYear) - stoppedDay) + currentDay;
+        }
+
+        if (yearDiff > 0 || monthDiff > 0 || dayDiff > 4) {
+            return -1;
+        }
+        timeInSecs += (dayDiff * 24 * 3600);
+
+        int stoppedHour = Integer.parseInt(stopTime[0]);
+        int currentHour = Integer.parseInt(currentTime[0]);
+        int stoppedMin = Integer.parseInt(stopTime[1]);
+        int currentMin = Integer.parseInt(currentTime[1]);
+        int stoppedSec = Integer.parseInt(stopTime[2]);
+        int currentSec = Integer.parseInt(currentTime[2]);
+
+        int hourDiff = currentHour - stoppedHour;
+        int minDiff = currentMin - stoppedMin;
+        int secDiff = currentSec - stoppedSec;
+
+        if (minDiff < 0) {
+            hourDiff--;
+            minDiff = (60 - stoppedMin) + currentMin;
+        }
+
+        if (secDiff < 0) {
+            minDiff--;
+            secDiff = (60 - stoppedSec) + currentSec;
+        }
+        timeInSecs += ((hourDiff * 3600) + (minDiff * 60) + secDiff);
+        return timeInSecs;
+    }
+
+    private int getDaysInMonth(int stoppedMonth, int stoppedYear) {
+        if (stoppedMonth == 2) {
+            return ((stoppedYear % 400 == 0) || (stoppedYear % 100 != 0
+                    && stoppedYear % 4 == 0)) ? 29 : 28;
+        }
+
+        if ((stoppedMonth < 8 && stoppedMonth % 2 != 0) || (stoppedMonth > 7
+                && stoppedMonth % 2 == 0)) {
+            return 31;
+        }
+
+        return 30;
     }
 }

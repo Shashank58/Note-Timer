@@ -1,10 +1,12 @@
 package com.notetimer;
 
+import android.content.Context;
 import android.support.design.widget.Snackbar;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.animation.DecelerateInterpolator;
+import android.view.inputmethod.InputMethodManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -64,5 +66,14 @@ public class AppUtils {
 
     public void showSnackBar(View view, String message) {
         Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    public void showKeyBoard(Context context, View view){
+        if (view != null) {
+            view.requestFocus();
+            InputMethodManager imm = (InputMethodManager) context.getSystemService
+                    (Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, 0);
+        }
     }
 }
