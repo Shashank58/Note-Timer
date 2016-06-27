@@ -1,6 +1,5 @@
 package com.notetimer;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -22,12 +21,8 @@ public class TaskHelper {
     private int adapterPosition = -1;
     private Handler timerTick = new Handler();
     private int timeInSecs = -1;
-    private Activity context;
     private Runnable run;
-
-    public TaskHelper(Activity context) {
-        this.context = context;
-    }
+    private String description;
 
     public List<Object> getTasks(Context context, int tasksNeeded) {
         List<Task> allTasks = new ArrayList<>(TaskDBHelper.getInstance()
@@ -103,11 +98,16 @@ public class TaskHelper {
         return currentDate() - getDate(date) == 1;
     }
 
-    public void startTimer(TextView timer, int position, int startingTime) {
+    public void startTimer(TextView timer, int position, int startTime, String description) {
         this.timer = timer;
         this.adapterPosition = position;
-        this.timeInSecs = startingTime;
+        this.timeInSecs = startTime;
+        this.description = description;
         startTime();
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void stopTimer() {
@@ -126,8 +126,8 @@ public class TaskHelper {
         return timeInSecs;
     }
 
-    public TextView getTimer() {
-        return timer;
+    public CharSequence getTimer() {
+        return timer.getText();
     }
 
     private void startTime() {
@@ -143,16 +143,18 @@ public class TaskHelper {
 
     private String convertToReadableFormat() {
         int secs = timeInSecs % 60;
-        int mins = timeInSecs / 60;
+        int mins = (timeInSecs / 60);
         int hours = mins / 60;
+        mins = mins % 60;
         timeInSecs++;
         return String.format("%02d:%02d:%02d", hours, mins, secs);
     }
 
     public String convertToReadableFormat(int timeInSecs) {
         int secs = timeInSecs % 60;
-        int mins = timeInSecs / 60;
+        int mins = (timeInSecs / 60);
         int hours = mins / 60;
+        mins = mins % 60;
         Log.d(TAG, "convertToReadableFormat: Hours - " + hours + " mins - " +
                 mins + " secs - " + secs);
         return String.format("%02d:%02d:%02d", hours, mins, secs);

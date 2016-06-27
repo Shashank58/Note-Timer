@@ -1,0 +1,53 @@
+<RelativeLayout
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/logo_small"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_margin="16dp"
+        android:src="@mipmap/ic_launcher"
+        />
+
+    <TextView
+        android:id="@+id/task_time_small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="01:26:32"
+        android:textSize="16sp"
+        android:layout_toRightOf="@id/logo_small"
+        android:layout_toEndOf="@id/logo_small"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginStart="6dp"
+        />
+
+    <TextView
+        android:id="@+id/description_small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/task_time_small"
+        android:layout_toRightOf="@id/logo_small"
+        android:layout_toEndOf="@id/logo_small"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:text="Something"
+        android:layout_marginLeft="6dp"
+        android:layout_marginStart="6dp"
+        />
+
+    <ImageView
+        android:id="@+id/task_done"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/ic_check"
+        android:padding="4dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="16dp"
+        />
+
+</RelativeLayout>

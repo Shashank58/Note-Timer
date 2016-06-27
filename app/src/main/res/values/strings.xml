@@ -9,4 +9,5 @@
     <string name="stop_running_timer">Stop timer which is already running?</string>
     <string name="not_supported">Not supported</string>
     <string name="task_finished">This task is already finished</string>
+    <string name="exit">Exit</string>
 </resources>

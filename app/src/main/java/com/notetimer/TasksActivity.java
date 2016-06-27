@@ -42,8 +42,7 @@ import butterknife.OnClick;
  * @author shashankm
  */
 
-//Todo Hide start timer when another task is already  running.
-//Todo
+//Todo Hide start timer when another task is already running.
 public class TasksActivity extends AppCompatActivity {
     private static final String TAG = "Tasks Activity";
     @BindView(R.id.add_task)
@@ -84,7 +83,7 @@ public class TasksActivity extends AppCompatActivity {
     }
 
     private void setAdapter() {
-        taskHelper = new TaskHelper(this);
+        taskHelper = new TaskHelper();
         listOfTasks = new ArrayList<>(taskHelper.getTasks(this, AppConstants.ALL_TASKS));
         adapter = new TasksAdapter();
         taskList.setAdapter(adapter);
@@ -213,6 +212,10 @@ public class TasksActivity extends AppCompatActivity {
             TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
                     ((Task) listOfTasks.get(taskHelper.getAdapterPosition())).getId());
             taskHelper.stopTimer();
+            Intent intent = new Intent(this, TimerService.class);
+            intent.putExtra(AppConstants.TIME, taskHelper.getTimer());
+            intent.putExtra(AppConstants.DESCRIPTION, taskHelper.getDescription());
+            startService(intent);
         }
     }
 
@@ -274,7 +277,7 @@ public class TasksActivity extends AppCompatActivity {
                 } else {
                     Log.d(TAG, "setTime: Coming here - " + tasksHolder.getAdapterPosition());
                     taskHelper.startTimer(tasksHolder.time, tasksHolder.getAdapterPosition(),
-                            task.getElapsedTime());
+                            task.getElapsedTime(), task.getDescription());
                 }
             } else {
                 Log.d(TAG, "setTime: Elapsed time - " + task.getElapsedTime());
@@ -346,10 +349,10 @@ public class TasksActivity extends AppCompatActivity {
         }
 
         private void timerStart(TextView time, int position, ImageView play) {
-            taskHelper.startTimer(time, position, 0);
             play.setVisibility(View.GONE);
             Task task = (Task) listOfTasks.get(position);
             task.setIsRunning(1);
+            taskHelper.startTimer(time, position, 0, task.getDescription());
             TaskDBHelper.getInstance().updateTimerStatus(TasksActivity.this,
                     task.getId(), task.getIsRunning());
         }
