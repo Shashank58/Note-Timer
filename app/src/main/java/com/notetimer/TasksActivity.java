@@ -212,11 +212,22 @@ public class TasksActivity extends AppCompatActivity {
             TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
                     ((Task) listOfTasks.get(taskHelper.getAdapterPosition())).getId());
             taskHelper.stopTimer();
-            Intent intent = new Intent(this, TimerService.class);
-            intent.putExtra(AppConstants.TIME, taskHelper.getTimer());
-            intent.putExtra(AppConstants.DESCRIPTION, taskHelper.getDescription());
-            startService(intent);
+            startNotification();
         }
+    }
+
+    private void startNotification() {
+        final Intent intent = new Intent(this, TimerService.class);
+        intent.putExtra(AppConstants.TIME, taskHelper.getTimer());
+        intent.putExtra(AppConstants.DESCRIPTION, taskHelper.getDescription());
+        intent.putExtra(AppConstants.TIME_IN_SECS, taskHelper.getTimeInSecs());
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                startService(intent);
+            }
+        };
+        thread.start();
     }
 
     @Override
