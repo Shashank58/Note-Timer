@@ -211,8 +211,8 @@ public class TasksActivity extends AppCompatActivity {
                     taskHelper.getCurrentDateTime());
             TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
                     ((Task) listOfTasks.get(taskHelper.getAdapterPosition())).getId());
-            taskHelper.stopTimer();
             startNotification();
+            taskHelper.stopTimer();
         }
     }
 
@@ -220,6 +220,7 @@ public class TasksActivity extends AppCompatActivity {
         final Intent intent = new Intent(this, TimerService.class);
         intent.putExtra(AppConstants.TIME, taskHelper.getTimer());
         intent.putExtra(AppConstants.DESCRIPTION, taskHelper.getDescription());
+        Log.d(TAG, "startNotification: Time in secs - " + taskHelper.getTimeInSecs());
         intent.putExtra(AppConstants.TIME_IN_SECS, taskHelper.getTimeInSecs());
         Thread thread = new Thread() {
             @Override

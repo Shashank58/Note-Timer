@@ -9,7 +9,7 @@
         android:id="@+id/logo"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_margin="16dp"
+        android:layout_margin="12dp"
         android:src="@mipmap/ic_launcher"
         />
 
@@ -36,7 +36,8 @@
         android:layout_marginStart="4dp"
         android:text="Description here"
         android:textColor="@color/grey_700"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
         android:layout_toEndOf="@id/logo"
         android:layout_toRightOf="@id/logo"
         />
@@ -63,6 +64,8 @@
         android:layout_toRightOf="@id/logo"
         android:orientation="horizontal"
         android:gravity="center"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
         >
 
         <LinearLayout
@@ -76,8 +79,8 @@
             >
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:src="@drawable/ic_check"
                 />
 
@@ -85,13 +88,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginLeft="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginRight="36dp"
-                android:layout_marginEnd="36dp"
+                android:layout_marginLeft="12dp"
+                android:layout_marginStart="12dp"
                 android:text="DONE"
                 android:textColor="@color/grey_700"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 />
 
         </LinearLayout>
@@ -107,8 +108,8 @@
             >
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:src="@drawable/ic_notifications_off"
                 />
 
@@ -116,13 +117,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginLeft="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginRight="36dp"
-                android:layout_marginEnd="36dp"
+                android:layout_marginLeft="12dp"
+                android:layout_marginStart="12dp"
                 android:text="HIDE"
                 android:textColor="@color/grey_700"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 />
 
         </LinearLayout>

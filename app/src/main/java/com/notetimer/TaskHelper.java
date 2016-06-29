@@ -20,7 +20,7 @@ public class TaskHelper {
     private TextView timer;
     private int adapterPosition = -1;
     private Handler timerTick = new Handler();
-    private int timeInSecs = -1;
+    private static int timeInSecs;
     private Runnable run;
     private String description;
 
@@ -101,7 +101,7 @@ public class TaskHelper {
     public void startTimer(TextView timer, int position, int startTime, String description) {
         this.timer = timer;
         this.adapterPosition = position;
-        this.timeInSecs = startTime;
+        timeInSecs = startTime;
         this.description = description;
         startTime();
     }
