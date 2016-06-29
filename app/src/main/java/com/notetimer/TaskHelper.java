@@ -5,9 +5,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -112,12 +110,6 @@ public class TaskHelper {
         timeInSecs = -1;
     }
 
-    public String getCurrentDateTime() {
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        return df.format(c.getTime());
-    }
-
     public int getTimeInSecs() {
         return timeInSecs;
     }
@@ -163,7 +155,7 @@ public class TaskHelper {
     public int calculateTimeDifference(String stoppedTime, int elapsedTime) {
         int timeInSecs = elapsedTime;
         String[] stopDateTime = stoppedTime.split(" ");
-        String[] currentDateTime = getCurrentDateTime().split(" ");
+        String[] currentDateTime = AppUtils.getInstance().getCurrentDateTime().split(" ");
         String[] stopDate = stopDateTime[0].split("/");
         String[] currentDate = currentDateTime[0].split("/");
         String[] stopTime = stopDateTime[1].split(":");

@@ -20,19 +20,23 @@ import android.widget.RemoteViews;
 public class TimerService extends Service {
     private static final String TAG = "Timer Service";
     private NotificationManager mNotificationManager;
-    private PendingIntent pendingIntent, doneTaskPendingIntent, deletePendingIntent;
+    private PendingIntent pendingIntent, deletePendingIntent;
+    private PendingIntent doneTaskPendingIntent, playPausePendingIntent;
     private static final int NOTIFICATION_ID = 1;
     private RemoteViews expandedView, smallView;
     private Handler timerTick = new Handler();
     private Runnable run;
+    private boolean isPaused = false;
     private Notification notification;
     private int timeInSecs;
     private long taskId;
+    private SharedPrefHandler sharedPrefHandler;
 
     @Override
     public void onCreate() {
         super.onCreate();
         setPendingIntents();
+        sharedPrefHandler = new SharedPrefHandler();
     }
 
     @Override
@@ -61,7 +65,10 @@ public class TimerService extends Service {
 
         expandedView.setOnClickPendingIntent(R.id.done_with_task, doneTaskPendingIntent);
         smallView.setOnClickPendingIntent(R.id.task_done, doneTaskPendingIntent);
+
         expandedView.setOnClickPendingIntent(R.id.remove_notification, deletePendingIntent);
+        expandedView.setOnClickPendingIntent(R.id.toggle_task_state, playPausePendingIntent);
+
         expandedView.setTextViewText(R.id.task_time, time);
         smallView.setTextViewText(R.id.task_time_small, time);
         expandedView.setTextViewText(R.id.description, description);
@@ -74,16 +81,19 @@ public class TimerService extends Service {
     }
 
     private void startTime() {
-        run = new Runnable() {
-            @Override
-            public void run() {
-                String time = convertToReadableFormat();
-                expandedView.setTextViewText(R.id.task_time, time);
-                smallView.setTextViewText(R.id.task_time_small, time);
-                mNotificationManager.notify(NOTIFICATION_ID, notification);
-                timerTick.postDelayed(run, 1000);
-            }
-        };
+        if (run == null) {
+            run = new Runnable() {
+                @Override
+                public void run() {
+                    String time = convertToReadableFormat();
+                    timeInSecs++;
+                    expandedView.setTextViewText(R.id.task_time, time);
+                    smallView.setTextViewText(R.id.task_time_small, time);
+                    mNotificationManager.notify(NOTIFICATION_ID, notification);
+                    timerTick.postDelayed(run, 1000);
+                }
+            };
+        }
         timerTick.post(run);
     }
 
@@ -97,9 +107,9 @@ public class TimerService extends Service {
 
                 case AppConstants.DONE_TASK:
                     if (taskId != -1) {
-                        TaskDBHelper.getInstance().stopTimerForTask(context, 1,
-                                timeInSecs, taskId);
-                        new SharedPrefHandler().deleteAllData(context);
+                        TaskDBHelper.getInstance().stopTimerForTask(context, AppConstants
+                                .TASK_STATUS_FINISHED, timeInSecs, taskId);
+                        sharedPrefHandler.deleteAllData(context);
                     }
                     removeNotification();
                     break;
@@ -112,9 +122,44 @@ public class TimerService extends Service {
                     showTasks.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(showTasks);
                     break;
+
+                case AppConstants.PLAY_PAUSE_TASK:
+                    if (isPaused) {
+                        unPauseTask();
+                        TaskDBHelper.getInstance().updateTimerStatus(context,
+                                taskId, AppConstants.TASK_STATUS_RUNNING);
+                        sharedPrefHandler.saveTimeAndId(context, taskId,
+                                AppUtils.getInstance().getCurrentDateTime());
+                    } else {
+                        pauseTask();
+                        TaskDBHelper.getInstance().updateTimerStatus(context,
+                                taskId, AppConstants.TASK_STATUS_PAUSED);
+                        TaskDBHelper.getInstance().updateTime(context, timeInSecs, taskId);
+                        sharedPrefHandler.deleteAllData(context);
+                    }
+                    mNotificationManager.notify(NOTIFICATION_ID, notification);
+                    break;
             }
         }
     };
+
+    private void pauseTask() {
+        timerTick.removeCallbacks(run);
+        isPaused = true;
+        expandedView.setTextViewText(R.id.play_pause_text,
+                getString(R.string.play));
+        expandedView.setImageViewResource(R.id.play_pause,
+                R.drawable.ic_play_arrow);
+    }
+
+    private void unPauseTask() {
+        isPaused = false;
+        startTime();
+        expandedView.setTextViewText(R.id.play_pause_text,
+                getString(R.string.pause));
+        expandedView.setImageViewResource(R.id.play_pause,
+                R.drawable.ic_pause);
+    }
 
     private void removeNotification() {
         if (run != null) {
@@ -129,7 +174,6 @@ public class TimerService extends Service {
         int mins = (timeInSecs / 60);
         int hours = mins / 60;
         mins = mins % 60;
-        timeInSecs++;
         return String.format("%02d:%02d:%02d", hours, mins, secs);
     }
 
@@ -149,6 +193,8 @@ public class TimerService extends Service {
                 new Intent(AppConstants.DONE_TASK), 0);
         deletePendingIntent = PendingIntent.getBroadcast(this, 0,
                 new Intent(AppConstants.REMOVE_NOTIFICATION), 0);
+        playPausePendingIntent = PendingIntent.getBroadcast(this, 0,
+                new Intent(AppConstants.PLAY_PAUSE_TASK), 0);
         registerReceiverWithFilters();
     }
 
@@ -157,6 +203,7 @@ public class TimerService extends Service {
         intentFilter.addAction(AppConstants.REMOVE_NOTIFICATION);
         intentFilter.addAction(AppConstants.DONE_TASK);
         intentFilter.addAction(AppConstants.SHOW_TASKS);
+        intentFilter.addAction(AppConstants.PLAY_PAUSE_TASK);
         registerReceiver(broadcastReceiver, intentFilter);
     }
 

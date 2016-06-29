@@ -36,4 +36,5 @@ public class AppConstants {
     public static final String DONE_TASK = PACKAGE_NAME + ".done";
     public static final String REMOVE_NOTIFICATION = PACKAGE_NAME + ".remove";
     public static final String SHOW_TASKS = PACKAGE_NAME + ".show.task";
+    public static final String PLAY_PAUSE_TASK = PACKAGE_NAME + ".play.pause";
 }

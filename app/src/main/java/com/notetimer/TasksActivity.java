@@ -60,7 +60,8 @@ public class TasksActivity extends AppCompatActivity {
     private List<Object> listOfTasks;
     private TaskHelper taskHelper;
     private SharedPrefHandler sharedPrefHandler;
-    private int adapterPosition, editPosition = -1;
+    private int editPosition = -1;
+    private long runningTaskId;
     private String stoppedTime;
     private Handler handler = new Handler();
 
@@ -80,7 +81,7 @@ public class TasksActivity extends AppCompatActivity {
 
     private void fetchDataFromSharedPref() {
         sharedPrefHandler = new SharedPrefHandler();
-        adapterPosition = sharedPrefHandler.getAdapterPosition(this);
+        runningTaskId = sharedPrefHandler.getTaskId(this);
         stoppedTime = sharedPrefHandler.getStoppedTime(this);
         Log.d(TAG, "fetchDataFromSharedPref: Stopped time - " + stoppedTime);
     }
@@ -147,7 +148,6 @@ public class TasksActivity extends AppCompatActivity {
         if (description.isEmpty()) {
             return;
         }
-
         if (editPosition != -1) {
             Task task = (Task) listOfTasks.get(editPosition);
             task.setDescription(description);
@@ -224,10 +224,11 @@ public class TasksActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         if (taskHelper.getAdapterPosition() != -1) {
-            sharedPrefHandler.saveTimeAndPosition(this, taskHelper.getAdapterPosition(),
-                    taskHelper.getCurrentDateTime());
+            Task task = (Task) listOfTasks.get(taskHelper.getAdapterPosition());
+            sharedPrefHandler.saveTimeAndId(this, task.getId(),
+                    AppUtils.getInstance().getCurrentDateTime());
             TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
-                    ((Task) listOfTasks.get(taskHelper.getAdapterPosition())).getId());
+                    task.getId());
             startNotification();
             taskHelper.stopTimer();
         }
@@ -289,7 +290,7 @@ public class TasksActivity extends AppCompatActivity {
             } else {
                 final TasksHolder tasksHolder = (TasksHolder) holder;
                 Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
-                if (adapterPosition == holder.getAdapterPosition()) {
+                if (runningTaskId == task.getId()) {
                     task.setElapsedTime(taskHelper.calculateTimeDifference(stoppedTime, task.getElapsedTime()));
                     sharedPrefHandler.deleteAllData(TasksActivity.this);
                 }
@@ -368,7 +369,7 @@ public class TasksActivity extends AppCompatActivity {
                         @UiThread
                         public void run() {
                             TaskDBHelper.getInstance().stopTimerForTask(TasksActivity.this,
-                                    1, taskHelper.getTimeInSecs(), task.getId());
+                                    AppConstants.TASK_STATUS_FINISHED, taskHelper.getTimeInSecs(), task.getId());
                             task.setTaskStatus(AppConstants.TASK_STATUS_FINISHED);
                             task.setElapsedTime(taskHelper.getTimeInSecs());
                             taskHelper.stopTimer();

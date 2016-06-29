@@ -93,4 +93,10 @@ public class AppUtils {
             imm.showSoftInput(view, 0);
         }
     }
+
+    public String getCurrentDateTime() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return df.format(c.getTime());
+    }
 }
