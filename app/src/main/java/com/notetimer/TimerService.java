@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -59,19 +58,14 @@ public class TimerService extends Service {
                 R.layout.task_notif_expanded);
         smallView = new RemoteViews(getPackageName(),
                 R.layout.task_notif_small);
-        Log.d(TAG, "setUpNotification: Description - " + description);
 
         expandedView.setOnClickPendingIntent(R.id.done_with_task, doneTaskPendingIntent);
         smallView.setOnClickPendingIntent(R.id.task_done, doneTaskPendingIntent);
-
         expandedView.setOnClickPendingIntent(R.id.remove_notification, deletePendingIntent);
-
         expandedView.setTextViewText(R.id.task_time, time);
         smallView.setTextViewText(R.id.task_time_small, time);
-
         expandedView.setTextViewText(R.id.description, description);
         smallView.setTextViewText(R.id.description_small, description);
-
         Notification.Builder notificationBuilder = new Notification.Builder(this)
                 .setAutoCancel(true).setSmallIcon(R.mipmap.ic_launcher)
                 .setOngoing(true).setDeleteIntent(deletePendingIntent);

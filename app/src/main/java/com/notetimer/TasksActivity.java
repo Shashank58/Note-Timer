@@ -10,6 +10,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -53,13 +55,14 @@ public class TasksActivity extends AppCompatActivity {
     RelativeLayout primaryLayout;
 
     private EditText taskDescription;
-    private CheckBox startTimer, showInNotification;
+    private CheckBox startTimer;
     private TasksAdapter adapter;
     private List<Object> listOfTasks;
     private TaskHelper taskHelper;
     private SharedPrefHandler sharedPrefHandler;
-    private int adapterPosition;
+    private int adapterPosition, editPosition = -1;
     private String stoppedTime;
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,11 +99,15 @@ public class TasksActivity extends AppCompatActivity {
 
     @OnClick(R.id.add_task)
     void addTask() {
+        showAddTaskDialog("");
+    }
+
+    private void showAddTaskDialog(String task) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final View dialogView = getLayoutInflater().inflate(R.layout.add_task, null);
         builder.setView(dialogView).setCancelable(false);
         final AlertDialog dialog = builder.create();
-        fetchViews(dialogView);
+        fetchViews(dialogView, task);
         if (VERSION.SDK_INT >= 21) {
             dialog.setOnShowListener(new OnShowListener() {
                 @Override
@@ -116,39 +123,43 @@ public class TasksActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void fetchViews(View dialogView) {
-        if (taskDescription == null || startTimer == null || showInNotification == null) {
-            Log.d(TAG, "fetchViews: Entering");
-            taskDescription = (EditText) dialogView.findViewById(R.id.task_to_be_done);
-            startTimer = (CheckBox) dialogView.findViewById(R.id.timer_check_box);
-            showInNotification = (CheckBox) dialogView.findViewById(R.id.show_notification_check_box);
-        }
+    private void fetchViews(View dialogView, String task) {
+        taskDescription = (EditText) dialogView.findViewById(R.id.task_to_be_done);
+        startTimer = (CheckBox) dialogView.findViewById(R.id.timer_check_box);
+        taskDescription.setText(task);
     }
 
     private void hideDialog(final AlertDialog dialog, final int resId, final View dialogView) {
         dialogView.findViewById(resId).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (resId == R.id.done && !taskDescription.getText().toString().trim().isEmpty()) {
+                if (resId == R.id.done) {
                     storeTask();
                 }
                 revealShow(dialogView, false, dialog);
+                editPosition = -1;
             }
         });
     }
 
     private void storeTask() {
         String description = taskDescription.getText().toString().trim();
-        Log.d(TAG, "storeTask: Description - " + description);
         if (description.isEmpty()) {
             return;
         }
-        int isRunning = startTimer.isChecked() ? 1 : 0;
-        Task task = new Task(description, isRunning, 0, 0, AppUtils.getInstance().getCurrentDate());
-        long id = TaskDBHelper.getInstance().insertTask(this, task);
-        taskDescription = null;
-        task.setId(id);
-        addToAdapter(task);
+
+        if (editPosition != -1) {
+            Task task = (Task) listOfTasks.get(editPosition);
+            task.setDescription(description);
+            adapter.notifyItemChanged(editPosition);
+        } else {
+            int isRunning = startTimer.isChecked() ? 1 : 0;
+            Task task = new Task(description, isRunning, 0, 0, AppUtils.getInstance().getCurrentDate());
+            long id = TaskDBHelper.getInstance().insertTask(this, task);
+            taskDescription = null;
+            task.setId(id);
+            addToAdapter(task);
+        }
     }
 
     private void addToAdapter(Task task) {
@@ -198,8 +209,14 @@ public class TasksActivity extends AppCompatActivity {
                 w, h, 0, maxRadius);
 
         view.setVisibility(View.VISIBLE);
+        revealAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                AppUtils.getInstance().showKeyBoard(TasksActivity.this, taskDescription);
+            }
+        });
         revealAnimator.start();
-        AppUtils.getInstance().showKeyBoard(this, taskDescription);
     }
 
     @Override
@@ -322,23 +339,45 @@ public class TasksActivity extends AppCompatActivity {
                         tasksHolder.getAdapterPosition());
             }
             doneListener(tasksHolder.actions.get(0), task, tasksHolder);
+            editListener(tasksHolder.actions.get(2), task.getDescription(),
+                    tasksHolder.getAdapterPosition());
             tasksHolder.actionsLayout.setVisibility(View.VISIBLE);
+        }
+
+        private void editListener(ImageView edit, final String description, final int pos) {
+            edit.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editPosition = pos;
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            showAddTaskDialog(description);
+                        }
+                    }, 200);
+                }
+            });
         }
 
         private void doneListener(ImageView done, final Task task, final TasksHolder tasksHolder) {
             done.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    TaskDBHelper.getInstance().stopTimerForTask(TasksActivity.this,
-                            1, taskHelper.getTimeInSecs(), task.getId());
-                    Log.d(TAG, "onClick: Coming here");
-                    task.setIsStopped(1);
-                    task.setIsRunning(0);
-                    task.setElapsedTime(taskHelper.getTimeInSecs());
-                    taskHelper.stopTimer();
-                    sharedPrefHandler.deleteAllData(TasksActivity.this);
-                    tasksHolder.actionsLayout.setVisibility(View.GONE);
-                    adapter.notifyDataSetChanged();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        @UiThread
+                        public void run() {
+                            TaskDBHelper.getInstance().stopTimerForTask(TasksActivity.this,
+                                    1, taskHelper.getTimeInSecs(), task.getId());
+                            task.setIsStopped(1);
+                            task.setIsRunning(0);
+                            task.setElapsedTime(taskHelper.getTimeInSecs());
+                            taskHelper.stopTimer();
+                            sharedPrefHandler.deleteAllData(TasksActivity.this);
+                            tasksHolder.actionsLayout.setVisibility(View.GONE);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }, 200);
                 }
             });
         }
@@ -347,12 +386,17 @@ public class TasksActivity extends AppCompatActivity {
             play.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (taskHelper.getAdapterPosition() == -1) {
-                        timerStart(time, position, play);
-                    } else {
-                        AppUtils.getInstance().showSnackBar(primaryLayout,
-                                getString(R.string.stop_running_timer));
-                    }
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (taskHelper.getAdapterPosition() == -1) {
+                                timerStart(time, position, play);
+                            } else {
+                                AppUtils.getInstance().showSnackBar(primaryLayout,
+                                        getString(R.string.stop_running_timer));
+                            }
+                        }
+                    }, 200);
                 }
             });
         }

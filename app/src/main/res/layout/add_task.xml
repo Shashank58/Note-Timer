@@ -10,11 +10,12 @@
         android:id="@+id/title_text"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/colorAccent"
+        android:background="@color/colorPrimaryDark"
         android:gravity="center"
         android:text="@string/add_task"
         android:textColor="@color/white"
         android:textSize="24sp"
+        android:layout_marginBottom="12dp"
         />
 
     <EditText
@@ -41,7 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/task_to_be_done"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="18dp"
         android:layout_toEndOf="@id/timer_check_box"
         android:layout_toRightOf="@id/timer_check_box"
         android:text="@string/start_timer"
@@ -50,35 +51,13 @@
         android:layout_marginStart="6dp"
         />
 
-    <CheckBox
-        android:id="@+id/show_notification_check_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/timer_check_box"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/timer_check_box"
-        android:layout_marginTop="8dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginStart="6dp"
-        android:textSize="16sp"
-        android:layout_toEndOf="@id/show_notification_check_box"
-        android:layout_toRightOf="@id/show_notification_check_box"
-        android:text="@string/show_timer_in_notification"
-        />
-
     <Button
         android:id="@+id/done"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@id/show_notification_check_box"
+        android:layout_below="@id/timer_check_box"
         android:layout_margin="16dp"
         android:layout_marginTop="32dp"
         android:background="@drawable/button_shap_orange"
@@ -90,10 +69,11 @@
         android:id="@+id/cancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/show_notification_check_box"
-        android:layout_margin="16dp"
-        android:layout_marginTop="32dp"
+        android:layout_below="@id/timer_check_box"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
         android:layout_toLeftOf="@id/done"
+        android:layout_toStartOf="@id/done"
         android:background="@drawable/button_shape_grey"
         android:text="@string/cancel"
         android:textColor="@color/white"

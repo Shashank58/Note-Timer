@@ -24,6 +24,10 @@ public class Task {
         this.elapsedTime = elapsedTime;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public int getIsStopped() {
         return isStopped;
     }
