@@ -28,6 +28,7 @@ public class TimerService extends Service {
     private Runnable run;
     private Notification notification;
     private int timeInSecs;
+    private long taskId;
 
     @Override
     public void onCreate() {
@@ -37,14 +38,19 @@ public class TimerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mNotificationManager = (NotificationManager) getSystemService
-                (Context.NOTIFICATION_SERVICE);
+        String action = intent.getAction();
+        if (AppConstants.STOP_NOTIFICATION.equals(action)) {
+            removeNotification();
+        } else {
+            mNotificationManager = (NotificationManager) getSystemService
+                    (Context.NOTIFICATION_SERVICE);
 
-        timeInSecs = intent.getIntExtra(AppConstants.TIME_IN_SECS, -1);
-        setUpNotification(intent.getStringExtra(AppConstants.TIME),
-                intent.getStringExtra(AppConstants.DESCRIPTION));
-        startTime();
-
+            timeInSecs = intent.getIntExtra(AppConstants.TIME_IN_SECS, -1);
+            taskId = intent.getLongExtra(AppConstants.TASK_ID, -1);
+            setUpNotification(intent.getStringExtra(AppConstants.TIME),
+                    intent.getStringExtra(AppConstants.DESCRIPTION));
+            startTime();
+        }
         return START_NOT_STICKY;
     }
 
@@ -92,14 +98,36 @@ public class TimerService extends Service {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case AppConstants.REMOVE_NOTIFICATION:
-                    Log.d(TAG, "onReceive: Coming to receiver");
-                    timerTick.removeCallbacks(run);
-                    unregisterReceiver(broadcastReceiver);
-                    stopSelf();
+                    removeNotification();
+                    break;
+
+                case AppConstants.DONE_TASK:
+                    if (taskId != -1) {
+                        TaskDBHelper.getInstance().stopTimerForTask(context, 1,
+                                timeInSecs, taskId);
+                    }
+                    removeNotification();
+                    break;
+
+                case AppConstants.SHOW_TASKS:
+                    removeNotification();
+                    Intent showTasks = new Intent(context, TasksActivity.class);
+                    showTasks.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    showTasks.addFlags(PendingIntent.FLAG_UPDATE_CURRENT);
+                    showTasks.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(showTasks);
                     break;
             }
         }
     };
+
+    private void removeNotification() {
+        if (run != null) {
+            timerTick.removeCallbacks(run);
+        }
+        unregisterReceiver(broadcastReceiver);
+        stopSelf();
+    }
 
     private String convertToReadableFormat() {
         int secs = timeInSecs % 60;
@@ -120,16 +148,20 @@ public class TimerService extends Service {
     }
 
     private void setPendingIntents() {
-        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
-                        TasksActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent = PendingIntent.getBroadcast(this, 0,
+                new Intent(AppConstants.SHOW_TASKS), 0);
         doneTaskPendingIntent = PendingIntent.getBroadcast(this, 0,
                 new Intent(AppConstants.DONE_TASK), 0);
         deletePendingIntent = PendingIntent.getBroadcast(this, 0,
                 new Intent(AppConstants.REMOVE_NOTIFICATION), 0);
+        registerReceiverWithFilters();
+    }
 
+    private void registerReceiverWithFilters() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AppConstants.REMOVE_NOTIFICATION);
+        intentFilter.addAction(AppConstants.DONE_TASK);
+        intentFilter.addAction(AppConstants.SHOW_TASKS);
         registerReceiver(broadcastReceiver, intentFilter);
     }
 

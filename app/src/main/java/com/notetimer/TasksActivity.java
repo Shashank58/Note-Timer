@@ -206,7 +206,6 @@ public class TasksActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         if (taskHelper.getAdapterPosition() != -1) {
-            Log.d(TAG, "onStop: Saving stuff");
             sharedPrefHandler.saveTimeAndPosition(this, taskHelper.getAdapterPosition(),
                     taskHelper.getCurrentDateTime());
             TaskDBHelper.getInstance().updateTime(this, taskHelper.getTimeInSecs(),
@@ -218,9 +217,10 @@ public class TasksActivity extends AppCompatActivity {
 
     private void startNotification() {
         final Intent intent = new Intent(this, TimerService.class);
+        Task task = (Task) listOfTasks.get(taskHelper.getAdapterPosition());
         intent.putExtra(AppConstants.TIME, taskHelper.getTimer());
-        intent.putExtra(AppConstants.DESCRIPTION, taskHelper.getDescription());
-        Log.d(TAG, "startNotification: Time in secs - " + taskHelper.getTimeInSecs());
+        intent.putExtra(AppConstants.DESCRIPTION, task.getDescription());
+        intent.putExtra(AppConstants.TASK_ID, task.getId());
         intent.putExtra(AppConstants.TIME_IN_SECS, taskHelper.getTimeInSecs());
         Thread thread = new Thread() {
             @Override
@@ -234,6 +234,9 @@ public class TasksActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Intent intent = new Intent(this, TimerService.class);
+        intent.setAction(AppConstants.STOP_NOTIFICATION);
+        startService(intent);
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -266,11 +269,9 @@ public class TasksActivity extends AppCompatActivity {
                 TitleHolder titleHolder = (TitleHolder) holder;
                 titleHolder.day.setText((String) listOfTasks.get(holder.getAdapterPosition()));
             } else {
-                Log.d(TAG, "onBindViewHolder: ");
                 final TasksHolder tasksHolder = (TasksHolder) holder;
                 Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
                 if (adapterPosition == holder.getAdapterPosition()) {
-                    Log.d(TAG, "onBindViewHolder: Should not come here!");
                     task.setElapsedTime(taskHelper.calculateTimeDifference(stoppedTime, task.getElapsedTime()));
                     sharedPrefHandler.deleteAllData(TasksActivity.this);
                 }
@@ -281,18 +282,14 @@ public class TasksActivity extends AppCompatActivity {
         }
 
         private void setTime(TasksHolder tasksHolder, Task task) {
-            Log.d(TAG, "setTime: Is running - " + task.getIsRunning());
             if (task.getIsRunning() == 1 && task.getIsStopped() == 0) {
-                Log.d(TAG, "setTime: Elapsed time well - " + task.getElapsedTime());
                 if (task.getElapsedTime() == -1) {
                     tasksHolder.time.setText(getString(R.string.not_supported));
                 } else {
-                    Log.d(TAG, "setTime: Coming here - " + tasksHolder.getAdapterPosition());
                     taskHelper.startTimer(tasksHolder.time, tasksHolder.getAdapterPosition(),
                             task.getElapsedTime(), task.getDescription());
                 }
             } else {
-                Log.d(TAG, "setTime: Elapsed time - " + task.getElapsedTime());
                 tasksHolder.time.setText(task.getElapsedTime() == 0 ? "" :
                         taskHelper.convertToReadableFormat(task.getElapsedTime()));
             }

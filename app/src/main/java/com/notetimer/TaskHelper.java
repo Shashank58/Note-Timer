@@ -106,10 +106,6 @@ public class TaskHelper {
         startTime();
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public void stopTimer() {
         timerTick.removeCallbacks(run);
         adapterPosition = -1;

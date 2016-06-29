@@ -9,13 +9,23 @@ public class AppConstants {
     public static final int TASKS_TODAY = 2;
     public static final int TASKS_YESTERDAY = 3;
     public static final int ALL_TASKS = 5;
+
+    /**
+     * Intent extras constants
+     */
     public static final String STOPPED_TIME = "Stopped time";
     public static final String ADAPTER_POSITION = "Adapter position";
-    private static final String PACKAGE_NAME = "com.notetimer";
-    public static final String DONE_TASK = PACKAGE_NAME + ".done";
-    public static final String EXIT_TASK = PACKAGE_NAME + ".exit";
     public static final String TIME = "Time";
+    public static final String TASK_ID = "Task Id";
     public static final String DESCRIPTION = "Description";
     public static final String TIME_IN_SECS = "Time in secs";
-    public static final String REMOVE_NOTIFICATION = "com.notetimer.TimerService.remove";
+    public static final String STOP_NOTIFICATION = "Stop notification";
+
+    /**
+     * Broadcast constants
+     */
+    private static final String PACKAGE_NAME = "com.notetimer";
+    public static final String DONE_TASK = PACKAGE_NAME + ".done";
+    public static final String REMOVE_NOTIFICATION = PACKAGE_NAME + ".remove";
+    public static final String SHOW_TASKS = PACKAGE_NAME + ".show.task";
 }
