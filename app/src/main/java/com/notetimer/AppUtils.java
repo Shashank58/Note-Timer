@@ -1,7 +1,9 @@
 package com.notetimer;
 
 import android.content.Context;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.Snackbar.Callback;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -64,8 +66,23 @@ public class AppUtils {
         });
     }
 
-    public void showSnackBar(View view, String message) {
-        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
+    public void showSnackBar(View view, String message, final FloatingActionButton floatingActionButton) {
+        floatingActionButton.animate()
+                        .translationY(-75)
+                        .setDuration(200)
+                        .start();
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+                .setCallback(new Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        floatingActionButton.animate()
+                                .translationY(0)
+                                .setDuration(200)
+                                .start();
+                        super.onDismissed(snackbar, event);
+                    }
+                })
+                .show();
     }
 
     public void showKeyBoard(Context context, View view){

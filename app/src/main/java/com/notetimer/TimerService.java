@@ -99,6 +99,7 @@ public class TimerService extends Service {
                     if (taskId != -1) {
                         TaskDBHelper.getInstance().stopTimerForTask(context, 1,
                                 timeInSecs, taskId);
+                        new SharedPrefHandler().deleteAllData(context);
                     }
                     removeNotification();
                     break;

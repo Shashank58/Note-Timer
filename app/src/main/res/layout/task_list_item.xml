@@ -42,19 +42,6 @@
             >
 
             <ImageView
-                android:id="@+id/done"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:src="@drawable/ic_check"
-                android:padding="14dp"
-                android:layout_marginLeft="16dp"
-                android:layout_marginStart="16dp"
-                android:clickable="true"
-                android:background="?selectableItemBackgroundBorderless"
-                />
-
-            <ImageView
                 android:id="@+id/play"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
@@ -81,11 +68,11 @@
                 />
 
             <ImageView
-                android:id="@+id/notification"
+                android:id="@+id/done"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:src="@drawable/ic_notifications_off"
+                android:src="@drawable/ic_check"
                 android:padding="14dp"
                 android:layout_marginLeft="16dp"
                 android:layout_marginStart="16dp"

@@ -11,6 +11,14 @@ public class AppConstants {
     public static final int ALL_TASKS = 5;
 
     /**
+     * Task statuses
+     */
+    public static final int TASK_STATUS_RUNNING = 20;
+    public static final int TASK_STATUS_IDLE = 25;
+    public static final int TASK_STATUS_PAUSED = 30;
+    public static final int TASK_STATUS_FINISHED = 35;
+
+    /**
      * Intent extras constants
      */
     public static final String STOPPED_TIME = "Stopped time";

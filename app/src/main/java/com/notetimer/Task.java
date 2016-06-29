@@ -5,14 +5,13 @@ package com.notetimer;
  */
 public class Task {
     private String description, createdAt;
-    private int isRunning, elapsedTime, isStopped;
+    private int taskStatus, elapsedTime;
     private long id;
 
-    public Task(String description, int isRunning, int elapsedTime, int isStopped, String createdAt) {
+    public Task(String description, int taskStatus, int elapsedTime, String createdAt) {
         this.description = description;
-        this.isRunning = isRunning;
+        this.taskStatus = taskStatus;
         this.elapsedTime = elapsedTime;
-        this.isStopped = isStopped;
         this.createdAt = createdAt;
     }
 
@@ -28,14 +27,6 @@ public class Task {
         this.description = description;
     }
 
-    public int getIsStopped() {
-        return isStopped;
-    }
-
-    public void setIsStopped(int isStopped) {
-        this.isStopped = isStopped;
-    }
-
     public long getId() {
         return id;
     }
@@ -44,8 +35,12 @@ public class Task {
         this.id = id;
     }
 
-    public int getIsRunning() {
-        return isRunning;
+    public int getTaskStatus() {
+        return taskStatus;
+    }
+
+    public void setTaskStatus(int taskStatus) {
+        this.taskStatus = taskStatus;
     }
 
     public String getDescription() {
@@ -54,9 +49,5 @@ public class Task {
 
     public String getCreatedAt() {
         return createdAt;
-    }
-
-    public void setIsRunning(int isRunning) {
-        this.isRunning = isRunning;
     }
 }
