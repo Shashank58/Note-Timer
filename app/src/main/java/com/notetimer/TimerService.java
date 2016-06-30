@@ -64,8 +64,6 @@ public class TimerService extends Service {
                 R.layout.task_notif_small);
 
         expandedView.setOnClickPendingIntent(R.id.done_with_task, doneTaskPendingIntent);
-        smallView.setOnClickPendingIntent(R.id.task_done, doneTaskPendingIntent);
-
         expandedView.setOnClickPendingIntent(R.id.remove_notification, deletePendingIntent);
         expandedView.setOnClickPendingIntent(R.id.toggle_task_state, playPausePendingIntent);
 

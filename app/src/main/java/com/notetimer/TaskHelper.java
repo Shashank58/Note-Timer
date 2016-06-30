@@ -2,7 +2,6 @@ package com.notetimer;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -24,10 +23,14 @@ public class TaskHelper {
     public List<Object> getTasks(Context context) {
         List<Task> allTasks = new ArrayList<>(TaskDBHelper.getInstance()
                 .getAllTasks(context));
-        List<Object> relevantTasks = new ArrayList<>();
         if (allTasks.size() < 1) {
-            return relevantTasks;
+            return new ArrayList<>();
         }
+        return groupTasks(context, allTasks);
+    }
+
+    private List<Object> groupTasks(Context context, List<Task> allTasks) {
+        List<Object> relevantTasks = new ArrayList<>();
         Task runningTask = null;
         List<Task> pendingTasks = new ArrayList<>();
         List<Task> pausedTasks = new ArrayList<>();
@@ -163,8 +166,6 @@ public class TaskHelper {
         int mins = (timeInSecs / 60);
         int hours = mins / 60;
         mins = mins % 60;
-        Log.d(TAG, "convertToReadableFormat: Hours - " + hours + " mins - " +
-                mins + " secs - " + secs);
         return String.format("%02d:%02d:%02d", hours, mins, secs);
     }
 
