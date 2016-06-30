@@ -51,6 +51,19 @@
             android:text="01:23:67"
             />
 
+        <ImageView
+            android:id="@+id/delete_task"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_delete"
+            android:padding="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="16dp"
+            android:visibility="visible"
+            android:layout_below="@id/time"
+            />
+
         <LinearLayout
             android:id="@+id/actions_layout"
             android:layout_width="match_parent"

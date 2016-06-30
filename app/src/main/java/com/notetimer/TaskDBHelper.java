@@ -75,5 +75,12 @@ public class TaskDBHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(key, param);
         db.update(TaskDB.TASK_TABLE, contentValues, TaskDB.TASK_ID + " = " + id, null);
+        db.close();
+    }
+
+    public void deleteTask(Context context, long id) {
+        SQLiteDatabase db = TaskDB.getInstance(context).getWritableDatabase();
+        db.delete(TaskDB.TASK_TABLE, TaskDB.TASK_ID + " =? ", new String[]{Long.toString(id)});
+        db.close();
     }
 }

@@ -346,7 +346,7 @@ public class TasksActivity extends AppCompatActivity {
                 titleHolder.day.setText((String) listOfTasks.get(holder.getAdapterPosition()));
             } else {
                 final TasksHolder tasksHolder = (TasksHolder) holder;
-                Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
+                final Task task = (Task) listOfTasks.get(holder.getAdapterPosition());
                 if (runningTaskId == task.getId()) {
                     task.setElapsedTime(taskHelper.calculateTimeDifference(stoppedTime, task.getElapsedTime()));
                     sharedPrefHandler.deleteAllData(TasksActivity.this);
@@ -355,6 +355,26 @@ public class TasksActivity extends AppCompatActivity {
                 expandCard(tasksHolder, task);
                 setTime(tasksHolder, task);
                 tasksHolder.createdAt.setText(task.getCreatedAt().replaceAll("-", " "));
+                checkDeletable(tasksHolder, task);
+            }
+        }
+
+        private void checkDeletable(final TasksHolder tasksHolder, final Task task) {
+            if (task.getTaskStatus() == AppConstants.TASK_STATUS_FINISHED) {
+                tasksHolder.deleteTask.setVisibility(View.VISIBLE);
+                tasksHolder.deleteTask.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TaskDBHelper.getInstance().deleteTask(TasksActivity.this,
+                                task.getId());
+                        int pos = tasksHolder.getAdapterPosition();
+                        listOfTasks.remove(pos);
+                        notifyItemRemoved(pos);
+                        notifyItemRangeChanged(pos, listOfTasks.size());
+                    }
+                });
+            } else {
+                tasksHolder.deleteTask.setVisibility(View.GONE);
             }
         }
 
@@ -566,6 +586,7 @@ public class TasksActivity extends AppCompatActivity {
             protected @BindView(R.id.time) TextView time;
             protected @BindView(R.id.card_layout) CardView cardLayout;
             protected @BindView(R.id.created_date) TextView createdAt;
+            protected @BindView(R.id.delete_task) ImageView deleteTask;
 
             public TasksHolder(View itemView) {
                 super(itemView);
