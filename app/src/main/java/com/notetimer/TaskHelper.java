@@ -20,48 +20,69 @@ public class TaskHelper {
     private Handler timerTick = new Handler();
     private static int timeInSecs;
     private Runnable run;
-    private String description;
 
-    public List<Object> getTasks(Context context, int tasksNeeded) {
+    public List<Object> getTasks(Context context) {
         List<Task> allTasks = new ArrayList<>(TaskDBHelper.getInstance()
                 .getAllTasks(context));
         List<Object> relevantTasks = new ArrayList<>();
-
         if (allTasks.size() < 1) {
             return relevantTasks;
         }
-        final String yesterday = "Yesterday";
-        final String today = "Today";
-        switch (tasksNeeded) {
-            case AppConstants.TASKS_TODAY:
-                relevantTasks.add(today);
-                for (Task allTask : allTasks) {
-                    if (isTaskCreatedToday(allTask.getCreatedAt())) {
-                        relevantTasks.add(allTask);
-                    }
-                }
-                break;
+        Task runningTask = null;
+        List<Task> pendingTasks = new ArrayList<>();
+        List<Task> pausedTasks = new ArrayList<>();
+        List<Task> finishedTasks = new ArrayList<>();
+        for (Task allTask : allTasks) {
+            switch (allTask.getTaskStatus()) {
+                case AppConstants.TASK_STATUS_FINISHED:
+                    finishedTasks.add(0, allTask);
+                    break;
 
-            case AppConstants.TASKS_YESTERDAY:
-                relevantTasks.add(yesterday);
-                for (Task allTask : allTasks) {
-                    if (isTaskCreatedYesterday(allTask.getCreatedAt())) {
-                        relevantTasks.add(allTask);
-                    }
-                }
-                break;
+                case AppConstants.TASK_STATUS_IDLE:
+                    pendingTasks.add(0, allTask);
+                    break;
 
-            case AppConstants.ALL_TASKS:
-                for (Task allTask : allTasks) {
-                    if (isTaskCreatedToday(allTask.getCreatedAt())) {
-                        checkAndAddTask(today, allTask, relevantTasks);
-                    } else if (isTaskCreatedYesterday(allTask.getCreatedAt())) {
-                        checkAndAddTask(yesterday, allTask, relevantTasks);
-                    } else {
-                        checkAndAddTask(getDay(allTask.getCreatedAt()), allTask, relevantTasks);
-                    }
-                }
-                break;
+                case AppConstants.TASK_STATUS_PAUSED:
+                    pausedTasks.add(0, allTask);
+                    break;
+
+                case AppConstants.TASK_STATUS_RUNNING:
+                    runningTask = allTask;
+                    break;
+            }
+        }
+
+        return reOrderData(context, relevantTasks, runningTask, pendingTasks,
+                pausedTasks, finishedTasks);
+    }
+
+    private List<Object> reOrderData(Context context, List<Object> relevantTasks,
+             Task runningTask, List<Task> pendingTasks, List<Task> pausedTasks,
+                                     List<Task> finishedTasks) {
+        if (runningTask != null) {
+            relevantTasks.add(context.getString(R.string.running_task));
+            relevantTasks.add(runningTask);
+        }
+        if (pausedTasks.size() > 0) {
+            relevantTasks.add(context.getString(R.string.paused_tasks));
+            int pos = relevantTasks.size();
+            for (Task pausedTask : pausedTasks) {
+                relevantTasks.add(pos, pausedTask);
+            }
+        }
+        if (pendingTasks.size() > 0) {
+            relevantTasks.add(context.getString(R.string.pending_tasks));
+            int pos = relevantTasks.size();
+            for (Task pendingTask : pendingTasks) {
+                relevantTasks.add(pos, pendingTask);
+            }
+        }
+        if (finishedTasks.size() > 0) {
+            relevantTasks.add(context.getString(R.string.finished_tasks));
+            int pos = relevantTasks.size();
+            for (Task finishedTask : finishedTasks) {
+                relevantTasks.add(pos, finishedTask);
+            }
         }
         return relevantTasks;
     }
@@ -96,11 +117,10 @@ public class TaskHelper {
         return currentDate() - getDate(date) == 1;
     }
 
-    public void startTimer(TextView timer, int position, int startTime, String description) {
+    public void startTimer(TextView timer, int position, int startTime) {
         this.timer = timer;
         this.adapterPosition = position;
         timeInSecs = startTime;
-        this.description = description;
         startTime();
     }
 

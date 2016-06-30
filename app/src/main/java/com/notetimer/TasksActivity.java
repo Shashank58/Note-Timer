@@ -12,7 +12,6 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.UiThread;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
@@ -47,8 +46,6 @@ import butterknife.OnClick;
 //Todo Hide start timer when another task is already running.
 public class TasksActivity extends AppCompatActivity {
     private static final String TAG = "Tasks Activity";
-    @BindView(R.id.add_task)
-    FloatingActionButton addTask;
     @BindView(R.id.task_list)
     RecyclerView taskList;
     @BindView(R.id.primary_layout)
@@ -74,7 +71,6 @@ public class TasksActivity extends AppCompatActivity {
         taskList.setLayoutManager(new LinearLayoutManager(this));
         taskList.setHasFixedSize(true);
 
-        AppUtils.getInstance().itemClickAnimation(addTask);
         setAdapter();
         fetchDataFromSharedPref();
     }
@@ -88,7 +84,7 @@ public class TasksActivity extends AppCompatActivity {
 
     private void setAdapter() {
         taskHelper = new TaskHelper();
-        listOfTasks = new ArrayList<>(taskHelper.getTasks(this, AppConstants.ALL_TASKS));
+        listOfTasks = new ArrayList<>(taskHelper.getTasks(this));
         adapter = new TasksAdapter();
         taskList.setAdapter(adapter);
     }
@@ -100,7 +96,12 @@ public class TasksActivity extends AppCompatActivity {
 
     @OnClick(R.id.add_task)
     void addTask() {
-        showAddTaskDialog("");
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showAddTaskDialog("");
+            }
+        }, 200);
     }
 
     private void showAddTaskDialog(String task) {
@@ -196,7 +197,6 @@ public class TasksActivity extends AppCompatActivity {
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 dialog.dismiss();
-                addTask.setVisibility(View.VISIBLE);
             }
         });
 
@@ -205,7 +205,6 @@ public class TasksActivity extends AppCompatActivity {
 
     @TargetApi(VERSION_CODES.LOLLIPOP)
     private void showDialog(View view, int w, int h, float maxRadius) {
-        addTask.setVisibility(View.INVISIBLE);
         Animator revealAnimator = ViewAnimationUtils.createCircularReveal(view,
                 w, h, 0, maxRadius);
 
@@ -306,7 +305,7 @@ public class TasksActivity extends AppCompatActivity {
                     tasksHolder.time.setText(getString(R.string.not_supported));
                 } else {
                     taskHelper.startTimer(tasksHolder.time, tasksHolder.getAdapterPosition(),
-                            task.getElapsedTime(), task.getDescription());
+                            task.getElapsedTime());
                 }
             } else {
                 tasksHolder.time.setText(task.getElapsedTime() < 1 ? "" :
@@ -326,7 +325,7 @@ public class TasksActivity extends AppCompatActivity {
                         }
                     } else {
                         AppUtils.getInstance().showSnackBar(primaryLayout,
-                                getString(R.string.task_finished), addTask);
+                                getString(R.string.task_finished));
                     }
                 }
             });
@@ -417,7 +416,7 @@ public class TasksActivity extends AppCompatActivity {
                 timerStart(tasksHolder.time, tasksHolder.getAdapterPosition(), play);
             } else {
                 AppUtils.getInstance().showSnackBar(primaryLayout,
-                        getString(R.string.stop_running_timer), addTask);
+                        getString(R.string.stop_running_timer));
             }
         }
 
@@ -425,7 +424,7 @@ public class TasksActivity extends AppCompatActivity {
             play.setImageResource(R.drawable.ic_pause);
             Task task = (Task) listOfTasks.get(position);
             task.setTaskStatus(AppConstants.TASK_STATUS_RUNNING);
-            taskHelper.startTimer(time, position, task.getElapsedTime(), task.getDescription());
+            taskHelper.startTimer(time, position, task.getElapsedTime());
             TaskDBHelper.getInstance().updateTimerStatus(TasksActivity.this,
                     task.getId(), task.getTaskStatus());
         }

@@ -13,4 +13,8 @@
     <string name="pause">PAUSE</string>
     <string name="done_caps">DONE</string>
     <string name="play">PLAY</string>
+    <string name="running_task">Running</string>
+    <string name="paused_tasks">Paused</string>
+    <string name="pending_tasks">Pending</string>
+    <string name="finished_tasks">Finished</string>
 </resources>
