@@ -365,12 +365,17 @@ public class TasksActivity extends AppCompatActivity {
                 tasksHolder.deleteTask.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        TaskDBHelper.getInstance().deleteTask(TasksActivity.this,
-                                task.getId());
-                        int pos = tasksHolder.getAdapterPosition();
-                        listOfTasks.remove(pos);
-                        notifyItemRemoved(pos);
-                        notifyItemRangeChanged(pos, listOfTasks.size());
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                TaskDBHelper.getInstance().deleteTask(TasksActivity.this,
+                                        task.getId());
+                                int pos = tasksHolder.getAdapterPosition();
+                                listOfTasks.remove(pos);
+                                notifyItemRemoved(pos);
+                                notifyItemRangeChanged(pos, listOfTasks.size());
+                            }
+                        }, 200);
                     }
                 });
             } else {
